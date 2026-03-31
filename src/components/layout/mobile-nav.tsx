@@ -1,10 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import { type Role } from '@/types'
 import { cn } from '@/lib/utils'
-import { LayoutDashboard, Calendar, FileText, Users, CalendarDays } from 'lucide-react'
+import { LayoutDashboard, Calendar, FileText, Users, CalendarDays, LogOut } from 'lucide-react'
 
 const employeeLinks = [
   { href: '/dashboard', label: 'Home',     icon: LayoutDashboard },
@@ -26,7 +27,15 @@ interface Props {
 
 export function MobileNav({ role, pendingCount = 0 }: Props) {
   const pathname = usePathname()
+  const router = useRouter()
+  const supabase = createClient()
   const links = role === 'employee' ? employeeLinks : schedulerLinks
+
+  async function handleSignOut() {
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-blue-100 flex shadow-lg shadow-blue-900/10">
@@ -56,6 +65,13 @@ export function MobileNav({ role, pendingCount = 0 }: Props) {
           </Link>
         )
       })}
+      <button
+        onClick={handleSignOut}
+        className="flex-1 flex flex-col items-center gap-1 py-3 text-xs font-semibold text-gray-400 hover:text-red-500 transition-colors"
+      >
+        <LogOut className="h-5 w-5" />
+        Sign out
+      </button>
     </nav>
   )
 }
